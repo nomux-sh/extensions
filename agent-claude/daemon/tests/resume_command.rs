@@ -54,7 +54,7 @@ fn a_value_that_is_not_a_plain_name_or_looks_like_a_secret_is_dropped() {
         "--settings=/tmp/s.json",
         "claude-opus-4-6[1m]",
         "sk-ant-api03-abcdef",
-        "ghp_0123456789abcdefghijklmnopqrstuvwxyz",
+        "ghp_example",
         "aGVsbG8gd29ybGQgdGhpcyBpcyBhIHNlY3JldDEyMw",
         &"m".repeat(129),
     ] {
