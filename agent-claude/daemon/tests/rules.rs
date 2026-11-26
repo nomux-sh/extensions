@@ -212,14 +212,15 @@ fn an_elicitation_url_dialog_notification_needs_a_login() {
 }
 
 /// `idle_prompt` comes about 60 seconds after the end of a turn, when the
-/// user did not type: the `done` result becomes a wait for the user.
+/// user did not type: the `done` result becomes a wait at the input prompt,
+/// where nothing that the agent asked for is pending.
 #[test]
-fn an_idle_prompt_notification_needs_an_answer() {
+fn an_idle_prompt_notification_waits_at_the_prompt() {
     let mut memory = running();
     send(&mut memory, "Stop", json!({"background_tasks": []}));
     assert_eq!(
         documented_with(&mut memory, "Notification-idle_prompt"),
-        [r#"run needs-you question message="Claude is waiting for your input""#]
+        [r#"run needs-you prompt message="Claude is waiting for your input""#]
     );
 }
 

@@ -143,6 +143,7 @@ fn common(soft: bool, kind: i32, title: &str, tool: &str, message: &str) -> Vec<
         Ok(NeedsYouKind::Permission) => parts.push("permission".to_owned()),
         Ok(NeedsYouKind::Question) => parts.push("question".to_owned()),
         Ok(NeedsYouKind::Auth) => parts.push("auth".to_owned()),
+        Ok(NeedsYouKind::Prompt) => parts.push("prompt".to_owned()),
         _ => {}
     }
     if !title.is_empty() {

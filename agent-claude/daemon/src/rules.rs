@@ -172,7 +172,7 @@ pub const CLAUDE: Tool = Tool {
         Rule {
             events: &["Notification"],
             when: When::FieldIs("notification_type", "idle_prompt"),
-            then: Then::NeedsYou(NeedsYouKind::Question, Wait::Notification),
+            then: Then::NeedsYou(NeedsYouKind::Prompt, Wait::Notification),
         },
         Rule {
             events: &["Notification"],
