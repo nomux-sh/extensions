@@ -1,0 +1,30 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000006",
+  "transcript_path": "/home/user/.claude/projects/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000006.jsonl",
+  "cwd": "/tmp/nomux-test/work",
+  "prompt_id": "00000000-0000-4000-8000-000000000007",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PermissionRequest",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "touch b.txt",
+    "description": "Create empty file b.txt"
+  },
+  "permission_suggestions": [
+    {
+      "type": "addDirectories",
+      "directories": [
+        "/tmp/nomux-test/work"
+      ],
+      "destination": "session"
+    },
+    {
+      "type": "setMode",
+      "mode": "acceptEdits",
+      "destination": "session"
+    }
+  ]
+}

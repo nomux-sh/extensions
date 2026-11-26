@@ -1,0 +1,22 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000006",
+  "transcript_path": "/home/user/.claude/projects/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000006.jsonl",
+  "cwd": "/tmp/nomux-test/work",
+  "prompt_id": "00000000-0000-4000-8000-000000000007",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolBatch",
+  "tool_calls": [
+    {
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "touch b.txt",
+        "description": "Create empty file b.txt"
+      },
+      "tool_use_id": "toolu_example77",
+      "tool_response": "touch in '/tmp/nomux-test/work/b.txt' needs approval. The path is inside the working directories for this session ('/tmp/nomux-test/work'), and Claude Code asks before a shell command creates, changes or removes files there."
+    }
+  ]
+}

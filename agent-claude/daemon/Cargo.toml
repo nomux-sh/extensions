@@ -1,0 +1,27 @@
+[package]
+name = "nomux-agent-claude"
+version = "0.1.0"
+description = "The daemon part of the nomux adapter extension for Claude Code"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "nomux_agent_claude"
+
+[[bin]]
+name = "nomux-agent-claude"
+path = "src/main.rs"
+
+[dependencies]
+nomux-extension.workspace = true
+nomux-proto.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+nomux-extension = { workspace = true, features = ["manifest"] }
+
+[lints]
+workspace = true

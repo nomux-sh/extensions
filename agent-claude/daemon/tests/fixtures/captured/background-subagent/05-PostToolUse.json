@@ -1,0 +1,31 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000003",
+  "transcript_path": "/home/user/.claude/projects/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000003.jsonl",
+  "cwd": "/tmp/nomux-test/work",
+  "prompt_id": "00000000-0000-4000-8000-000000000004",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Agent",
+  "tool_input": {
+    "description": "read a.txt",
+    "prompt": "Read a.txt with the Read tool and reply with its first word.",
+    "subagent_type": "general-purpose",
+    "run_in_background": true
+  },
+  "tool_response": {
+    "isAsync": true,
+    "status": "async_launched",
+    "agentId": "a45f24c823c444cb5",
+    "description": "read a.txt",
+    "resolvedModel": "claude-haiku-5-5",
+    "prompt": "Read a.txt with the Read tool and reply with its first word.",
+    "outputFile": "/tmp/claude-user/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000003/tasks/a45f24c823c444cb5.output",
+    "canReadOutputFile": true,
+    "canContinueAgent": true
+  },
+  "tool_use_id": "toolu_example70",
+  "duration_ms": 106
+}

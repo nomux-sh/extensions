@@ -1,0 +1,9 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000003",
+  "transcript_path": "/home/user/.claude/projects/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000003.jsonl",
+  "cwd": "/tmp/nomux-test/work",
+  "prompt_id": "00000000-0000-4000-8000-000000000004",
+  "agent_id": "a45f24c823c444cb5",
+  "agent_type": "general-purpose",
+  "hook_event_name": "SubagentStart"
+}

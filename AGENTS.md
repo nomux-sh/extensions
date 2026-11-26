@@ -8,6 +8,10 @@ Rules for coding agents and for people who work in this repository. `CLAUDE.md` 
 
 | Path | Responsibility |
 |---|---|
+| `agent-claude/` | The `nomux.agent-claude` extension: the adapter of Claude Code. [agent-claude/README.md](agent-claude/README.md) describes its rules, its permissions and its limits. |
+| `agent-claude/extension.toml` | The manifest of the extension. |
+| `agent-claude/daemon/` | The crate `nomux-agent-claude`: the daemon part. `rules.rs` has the rule table, and one module for each of these: the hook data, the reports, the memory, the resume command, the safe texts, the install plan. It has no schemas: the messages are in `nomux-proto`. |
+| `agent-claude/daemon/tests/` | Tests of the rule table, of the order of the events, of hostile hook data, of the resume command and of the install plan. `fixtures/captured/` has the hook data of real runs of Claude Code, `fixtures/documented/` the data from the hooks reference. |
 | `git/` | The `nomux.git` extension. [git/README.md](git/README.md) describes its methods, its event, its permissions and its limits. |
 | `git/extension.toml` | The manifest of the extension. |
 | `git/proto/nomux/git/v1/` | Protobuf schemas of the package `nomux.git.v1`: the messages of the methods and of the event. |
@@ -30,7 +34,7 @@ Each extension has one directory at the repository root. The name of the directo
 | `extension.toml` | The manifest. | Yes |
 | `README.md` | Methods, events, permissions, limits, and what is not available yet. | Yes |
 | `CHANGELOG.md` | The changelog of the extension. | Yes |
-| `proto/nomux/<name>/v1/` | Protobuf schemas of the messages. | If the daemon part has methods |
+| `proto/nomux/<name>/v1/` | Protobuf schemas of the messages. | If the methods or the events of the daemon part have messages that `nomux-proto` does not have |
 | `daemon/` | The crate of the daemon part. A workspace member. The binary has the name `nomux-<name>`. | If the extension has a daemon part |
 | `daemon/src/generated/` | Output of `buf generate`. | With `proto/` |
 | `daemon/tests/` | Tests of the daemon part. | With `daemon/` |

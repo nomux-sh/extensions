@@ -1,0 +1,12 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000099",
+  "transcript_path": "/tmp/nomux-test/.claude/projects/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000099.jsonl",
+  "cwd": "/tmp/nomux-test/work",
+  "prompt_id": "00000000-0000-4000-8000-000000000098",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "StopFailure",
+  "error": "authentication_failed",
+  "last_assistant_message": "Not logged in · Please run /login"
+}

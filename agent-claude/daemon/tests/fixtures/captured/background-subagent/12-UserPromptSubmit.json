@@ -1,0 +1,9 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000003",
+  "transcript_path": "/home/user/.claude/projects/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000003.jsonl",
+  "cwd": "/tmp/nomux-test/work",
+  "prompt_id": "00000000-0000-4000-8000-000000000005",
+  "permission_mode": "default",
+  "hook_event_name": "UserPromptSubmit",
+  "prompt": "<task-notification>\n<task-id>a45f24c823c444cb5</task-id>\n<tool-use-id>toolu_example70</tool-use-id>\n<output-file>/tmp/claude-user/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000003/tasks/a45f24c823c444cb5.output</output-file>\n<status>completed</status>\n<summary>Agent \"read a.txt\" finished</summary>\n<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>\n<result>hello</result>\n<usage><subagent_tokens>29095</subagent_tokens><tool_uses>1</tool_uses><duration_ms>4103</duration_ms></usage>\n</task-notification>"
+}
