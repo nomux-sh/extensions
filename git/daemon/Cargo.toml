@@ -19,6 +19,7 @@ path = "src/main.rs"
 gix.workspace = true
 gix-notify.workspace = true
 nomux-extension.workspace = true
+nomux-proto.workspace = true
 prost.workspace = true
 
 [dev-dependencies]
