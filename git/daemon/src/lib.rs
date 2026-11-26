@@ -30,6 +30,7 @@ pub mod staging;
 pub mod status;
 mod upstream;
 pub mod watch;
+pub mod worktree_changes;
 pub mod worktree_facts;
 pub mod worktrees;
 
@@ -76,6 +77,22 @@ pub fn extension() -> Extension {
             writing(&watches, worktrees::worktree_remove),
         )
         .method("worktree_facts", reading(worktree_facts::worktree_facts))
+        .method(
+            "worktree_move_to_trash",
+            writing(&watches, worktree_changes::worktree_move_to_trash),
+        )
+        .method(
+            "worktree_move_from_trash",
+            writing(&watches, worktree_changes::worktree_move_from_trash),
+        )
+        .method(
+            "worktree_delete",
+            writing(&watches, worktree_changes::worktree_delete),
+        )
+        .method(
+            "worktree_prune",
+            writing(&watches, worktree_changes::worktree_prune),
+        )
         .method("watch", watch(&watches))
         .method("unwatch", unwatch(&watches))
 }
