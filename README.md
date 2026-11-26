@@ -8,18 +8,56 @@ This repository is a part of [nomux](https://github.com/nomux-sh), a native and 
 
 In development. Versions earlier than 1.0.0 are pre-releases: interfaces can change between minor versions.
 
-No extension has a release yet.
-
 ## Extensions
 
-| Extension | Identifier | Directory | State |
-|---|---|---|---|
-| Claude Code adapter | `nomux.agent-claude` | [agent-claude](agent-claude) | The daemon part is available: the status of a Claude Code session and of its subagents from the hooks of Claude Code, and the install description of the hooks. The UI part is not available yet. |
-| Git | `nomux.git` | [git](git) | The daemon part is available: status, diff, staging, commit, branches, log, blame, worktrees and a status that comes from file events. The UI part is not available yet. |
+| Extension | Identifier | Directory | Version | State |
+|---|---|---|---|---|
+| Claude Code adapter | `nomux.agent-claude` | [agent-claude](agent-claude) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/agent-claude@0.1.0) | The daemon part is available: the status of a Claude Code session and of its subagents from the hooks of Claude Code, and the install description of the hooks. The UI part is not available yet. |
+| Git | `nomux.git` | [git](git) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/git@0.1.0) | The daemon part is available: status, diff, staging, commit, branches, log, blame, worktrees and a status that comes from file events. The UI part is not available yet. |
 
-No other extension exists yet. The [roadmap](https://github.com/nomux-sh/docs/blob/main/src/content/docs/project/roadmap.md) gives the plan.
+Each extension needs nomux 0.4.0 or later. No other extension exists yet. The [roadmap](https://github.com/nomux-sh/docs/blob/main/src/content/docs/project/roadmap.md) gives the plan.
 
 An extension uses only the public extension API: the crate [`nomux-extension`](https://crates.io/crates/nomux-extension) of the [`extension-api`](https://github.com/nomux-sh/extension-api) repository. [ADR-0005](https://github.com/nomux-sh/docs/blob/main/adr/0005-extension-model.md) records the extension model.
+
+## Install a released extension
+
+Each release of an extension has one archive for each target and the file `SHA256SUMS`:
+
+| Target | Computer |
+|---|---|
+| `x86_64-unknown-linux-musl` | Linux on x86-64. The program is static. |
+| `aarch64-unknown-linux-musl` | Linux on ARM64. The program is static. |
+| `x86_64-apple-darwin` | macOS on Intel. |
+| `aarch64-apple-darwin` | macOS on Apple silicon. |
+
+The archive `nomux-<name>-<version>-<target>.tar.gz` has one directory. This directory is the package of the extension:
+
+```
+nomux-<name>-<version>-<target>/
+  extension.toml
+  bin/nomux-<name>
+  LICENSE-APACHE
+  LICENSE-MIT
+```
+
+`nomux ext install` reads a package from a directory. It does not read an archive or a URL. Thus, download the archive, examine its checksum and extract it first. For the `git` extension 0.1.0 on Linux x86-64:
+
+```sh
+tag=git@0.1.0
+archive=nomux-git-0.1.0-x86_64-unknown-linux-musl
+gh release download "$tag" --repo nomux-sh/extensions --pattern "$archive.tar.gz" --pattern SHA256SUMS
+grep " $archive.tar.gz$" SHA256SUMS | sha256sum --check   # on macOS: shasum -a 256 --check
+tar -xzf "$archive.tar.gz"
+nomux ext install "$archive" --grant-all --grant fs=<directory with your worktrees>
+nomux ext ls
+```
+
+Without `gh`, download the two files from `https://github.com/nomux-sh/extensions/releases/download/<tag>/<file>`.
+
+- `ext install` without an approval prints the permissions that the extension asks for and installs nothing. The README of each extension says why it asks for each permission.
+- `--grant-all` does not approve a directory that starts with `${worktree}`. Give each directory with `--grant fs=<directory>`.
+- To install a new version, remove the old version first: `nomux ext rm <id>`.
+- The package must stay a directory of regular files. The host refuses a symbolic link.
 
 ## Layout
 
@@ -35,6 +73,8 @@ The repository is one Cargo workspace. Each extension has one directory at the r
 | `<name>/ui/`, `<name>/locales/` | The UI part and its texts. No extension has them yet. |
 | `tools/protoc-gen-nomux-prost/` | Local `buf` plugin that runs `prost-build`. Not published. |
 | `scripts/check-generated.sh` | Fails if the generated code is stale. |
+| `scripts/build-extension.sh`, `scripts/check-extension-archive.sh` | Build, pack and examine the release archive of one extension for one target. |
+| `scripts/extension-version.sh`, `scripts/release-notes.sh` | Print the version of an extension and the changelog section of a version. The release workflow uses them. |
 | `buf.yaml`, `buf.gen.yaml` | `buf` configuration. |
 | `deny.toml` | `cargo-deny` configuration. |
 | `cliff.toml` | `git-cliff` configuration for all extensions. |
@@ -106,7 +146,27 @@ The [release guide](https://github.com/nomux-sh/.github/blob/main/RELEASING.md) 
 - **A release pull request has the title `chore: release <name> X.Y.Z`.** It changes the two versions and the changelog of one extension.
 - The extension API version that an extension needs is `api` in its `extension.toml`. It is independent of the version of the extension.
 
-The release workflow does not exist yet: nothing builds a package, signs it or publishes it to the registry. Do not push a release tag until that workflow exists.
+The workflow [`release.yml`](.github/workflows/release.yml) makes the release. A tag `<name>@<version>` starts it. It builds only the extension of the tag:
+
+1. The `check` job stops the release if the tag is not `<name>@<version>` of `<name>/extension.toml`, if `<name>/daemon/Cargo.toml` has a different version, if the commit is not on `main`, if `<name>/CHANGELOG.md` has no section for the version, or if `nomux ext validate` of a released nomux refuses the manifest.
+2. After the checks, the `build` jobs build the daemon part for the four targets. `scripts/build-extension.sh` packs and examines each archive.
+3. The `checksums` job writes `SHA256SUMS`.
+4. The `github-release` job makes the GitHub release with the name of the tag, the archives, `SHA256SUMS` and notes: the changelog section of the version and the oldest nomux version that the extension supports (`NOMUX_VERSION` in the workflow). A version earlier than 1.0.0 is a pre-release.
+
+A manual run with the inputs `extension` and `dry-run` (the default) does the checks, except the tag and the `main` branch, and builds the archives as workflow artifacts. It makes no release:
+
+```sh
+gh workflow run release.yml --ref <branch> -f extension=git -f dry-run=true
+```
+
+The steps of a release:
+
+1. Open the release pull request `chore: release <name> X.Y.Z`. It changes the two versions and writes the changelog: `git cliff --include-path '<name>/**' --tag-pattern '^<name>@' --tag <name>@X.Y.Z --output <name>/CHANGELOG.md`.
+2. Merge the pull request after all checks pass.
+3. Put the tag on the merge result and push it: `git tag -a <name>@X.Y.Z -m <name>@X.Y.Z`, then `git push origin <name>@X.Y.Z`.
+4. Examine the release: download one archive and install it as [Install a released extension](#install-a-released-extension) says.
+
+Nothing signs a package or publishes it to a registry yet.
 
 ## Security
 

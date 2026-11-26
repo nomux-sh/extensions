@@ -84,10 +84,10 @@ The hook data has no command line of Claude Code, thus the adapter makes the res
 | `scope=hooks:read` | The daemon gives the hook events of `claude` to the extension |
 | `scope=agent:report` | The host services `agent.report` and `agent.child` |
 
-The extension asks for no file, process or network permission. It reads no transcript and no file of Claude Code. `nomux ext install` asks the user to approve the two scopes. The package directory has `extension.toml` and the program `bin/nomux-agent-claude`:
+The extension asks for no file, process or network permission. It reads no transcript and no file of Claude Code. `nomux ext install` asks the user to approve the two scopes. The package directory has `extension.toml` and the program `bin/nomux-agent-claude`. The extension needs nomux 0.4.0 or later. The archive of a release has this directory: the [root README](../README.md#install-a-released-extension) tells how to install it.
 
 ```console
-$ nomux ext install ./package --grant-all
+$ nomux ext install ./nomux-agent-claude-0.1.0-x86_64-unknown-linux-musl --grant-all
 extension nomux.agent-claude 0.1.0 installed with the permissions: scope=hooks:read scope=agent:report
 ```
 
@@ -122,7 +122,7 @@ Each event of the table gets one matcher group without a matcher. The handler ru
 ## Tested with
 
 - Claude Code 2.1.332 on Linux x86-64: five short runs in print mode with the cheapest model, in a temporary working directory, with the hooks from `nomux hooks install claude` in a temporary file given with `--settings`. `tests/fixtures/captured/` has the hook data of these runs without local paths, user names and identifiers. `tests/fixtures/documented/` has the data of the events that the runs did not show, written from the [hooks reference](https://code.claude.com/docs/en/hooks).
-- nomux `main` (commit `e0534b0`).
+- nomux `main` (commit `e0534b0`), and the released nomux 0.4.0 with the release archive.
 
 ## Limits
 

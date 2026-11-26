@@ -6,7 +6,7 @@ This directory has the daemon part of the extension. The nomux daemon starts the
 
 ## Status
 
-In development. Version 0.1.0 is not released. The messages can change in a minor version until version 1.0.0.
+In development. Version 0.1.0 is the first release. It needs nomux 0.4.0 or later. The messages can change in a minor version until version 1.0.0. The [root README](../README.md#install-a-released-extension) tells how to install a released version.
 
 These parts are not available yet:
 
@@ -14,7 +14,6 @@ These parts are not available yet:
 - Stash, rebase and merge.
 - Remote operations: fetch, pull and push.
 - Notes on diff lines.
-- A release package. [The root README](../README.md#releases) has the release rule.
 
 ## Design
 
@@ -223,7 +222,7 @@ cargo run --release -p nomux-git --example watch_burst -- 10000 300 1500 0
 
 The tests use real repositories in temporary directories and the `git` program of the computer. `tests/protocol.rs` starts the program `nomux-git` as a child process and speaks the extension protocol with it.
 
-To use the extension with a nomux daemon that has the `ext` commands:
+To use a build from the sources with a nomux daemon that has the `ext` commands:
 
 ```sh
 cargo build --release -p nomux-git
