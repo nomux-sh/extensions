@@ -1,0 +1,31 @@
+// Log messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+import "nomux/git/v1/commit.proto";
+
+// The argument of the `log` method.
+message LogRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // The revision where the log starts. Empty for `HEAD`.
+  string revision = 2;
+  // The number of commits to skip: the sum of the commits of the pages
+  // before this page.
+  uint32 skip = 3;
+  // The largest number of commits in the page. 0 for the default.
+  uint32 limit = 4;
+}
+
+// The result of the `log` method.
+message LogResponse {
+  // The commits of the page, the newest first.
+  repeated CommitInfo commits = 1;
+  // True when the log has more commits after this page.
+  bool has_more = 2;
+}

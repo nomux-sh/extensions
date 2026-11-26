@@ -1,0 +1,57 @@
+// Staging messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+// The argument of the `stage` method.
+message StageRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // Files and directories to stage completely, relative to the worktree.
+  repeated string paths = 2;
+  // Lines to stage. The line numbers are those of the `DIFF_KIND_UNSTAGED`
+  // diff of the file.
+  repeated LineSelection selections = 3;
+}
+
+// The result of the `stage` method.
+message StageResponse {}
+
+// The argument of the `unstage` method.
+message UnstageRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // Files and directories to unstage completely, relative to the worktree.
+  repeated string paths = 2;
+  // Lines to unstage. The line numbers are those of the `DIFF_KIND_STAGED`
+  // diff of the file.
+  repeated LineSelection selections = 3;
+}
+
+// The result of the `unstage` method.
+message UnstageResponse {}
+
+// Changed lines of one file. To select a hunk, give the two ranges of the
+// hunk.
+message LineSelection {
+  // The path of the file, relative to the worktree.
+  string path = 1;
+  // Ranges of line numbers in the old version. A removed line in a range is
+  // selected.
+  repeated LineRange old_lines = 2;
+  // Ranges of line numbers in the new version. An added line in a range is
+  // selected.
+  repeated LineRange new_lines = 3;
+}
+
+// A range of line numbers.
+message LineRange {
+  // The number of the first line. The first line of a file has the number 1.
+  uint32 start = 1;
+  // The number of lines.
+  uint32 count = 2;
+}

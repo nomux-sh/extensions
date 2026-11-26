@@ -1,0 +1,41 @@
+// Commit messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+// The argument of the `commit` method.
+message CommitRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // The commit message. The extension gives it to git without a change. With
+  // `amend`, an empty message keeps the message of the commit.
+  string message = 2;
+  // Replace the last commit.
+  bool amend = 3;
+}
+
+// The result of the `commit` method.
+message CommitResponse {
+  // The new commit as a hexadecimal object ID.
+  string commit_id = 1;
+}
+
+// A commit in a list.
+message CommitInfo {
+  // The commit as a hexadecimal object ID.
+  string id = 1;
+  // The parents of the commit.
+  repeated string parent_ids = 2;
+  // The name of the author.
+  string author_name = 3;
+  // The email address of the author.
+  string author_email = 4;
+  // The time of the author, in seconds since the Unix epoch.
+  int64 author_time = 5;
+  // The first paragraph of the commit message, on one line.
+  string summary = 6;
+}

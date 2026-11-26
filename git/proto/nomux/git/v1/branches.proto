@@ -1,0 +1,63 @@
+// Branch messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+import "nomux/git/v1/commit.proto";
+
+// The argument of the `branches` method.
+message BranchesRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+}
+
+// The result of the `branches` method.
+message BranchesResponse {
+  // The local branches, then the remote-tracking branches, each group in the
+  // sequence of the names.
+  repeated Branch branches = 1;
+}
+
+// One branch.
+message Branch {
+  // The short name, for example `main` or `origin/main`.
+  string name = 1;
+  // True for a remote-tracking branch.
+  bool is_remote = 2;
+  // True for the branch of `HEAD` of this worktree.
+  bool is_head = 3;
+  // The short name of the upstream branch. Empty when the branch has none.
+  string upstream = 4;
+  // The last commit of the branch.
+  CommitInfo commit = 5;
+}
+
+// The argument of the `switch` method.
+message SwitchRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // The branch to switch to.
+  string branch = 2;
+}
+
+// The result of the `switch` method.
+message SwitchResponse {}
+
+// The argument of the `create_branch` method.
+message CreateBranchRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // The name of the new branch.
+  string name = 2;
+  // The revision where the branch starts. Empty for `HEAD`.
+  string start_point = 3;
+  // Switch to the new branch.
+  bool switch = 4;
+}
+
+// The result of the `create_branch` method.
+message CreateBranchResponse {}
