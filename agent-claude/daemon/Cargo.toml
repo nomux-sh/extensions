@@ -1,6 +1,6 @@
 [package]
 name = "nomux-agent-claude"
-version = "0.1.0"
+version = "0.1.1"
 description = "The daemon part of the nomux adapter extension for Claude Code"
 edition.workspace = true
 license.workspace = true

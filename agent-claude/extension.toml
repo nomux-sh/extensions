@@ -3,7 +3,7 @@
 [extension]
 id = "nomux.agent-claude"
 name = "Claude Code adapter"
-version = "0.1.0"
+version = "0.1.1"
 api = "^0.1.1"
 
 [daemon]

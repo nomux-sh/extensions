@@ -12,7 +12,7 @@ In development. Versions earlier than 1.0.0 are pre-releases: interfaces can cha
 
 | Extension | Identifier | Directory | Version | Needs nomux | State |
 |---|---|---|---|---|---|
-| Claude Code adapter | `nomux.agent-claude` | [agent-claude](agent-claude) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/agent-claude@0.1.0) | 0.4.0 or later. The kind `prompt` needs 0.5.0 or later | The daemon part is available: the status of a Claude Code session and of its subagents from the hooks of Claude Code, and the install description of the hooks. The UI part is not available yet. |
+| Claude Code adapter | `nomux.agent-claude` | [agent-claude](agent-claude) | [0.1.1](https://github.com/nomux-sh/extensions/releases/tag/agent-claude@0.1.1) | 0.4.0 or later. The kind `prompt` needs 0.5.0 or later | The daemon part is available: the status of a Claude Code session and of its subagents from the hooks of Claude Code, and the install description of the hooks. The UI part is not available yet. |
 | Git | `nomux.git` | [git](git) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/git@0.1.0) | 0.4.0 or later | The daemon part is available: status, diff, staging, commit, branches, log, blame, worktrees and a status that comes from file events. The UI part is not available yet. |
 
 The manifest of an extension cannot state the nomux version that it needs: the README of the extension states it. No other extension exists yet. The [roadmap](https://github.com/nomux-sh/docs/blob/main/src/content/docs/project/roadmap.md) gives the plan.

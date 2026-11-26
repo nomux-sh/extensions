@@ -8,6 +8,15 @@ and this extension adheres to [Semantic Versioning](https://semver.org/spec/v2.0
 [git-cliff](https://git-cliff.org) writes this file from the commit subjects.
 The commands are at the top of `cliff.toml` in the repository root.
 
+## [0.1.1] - 2026-11-26
+
+### Added
+
+- Report the idle prompt of Claude Code as a wait at the prompt
+
+### Documentation
+
+- State the install steps and the nomux version of each extension
 ## [0.1.0] - 2026-11-26
 
 ### Added

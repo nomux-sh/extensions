@@ -96,8 +96,8 @@ The extension needs nomux 0.4.0 or later. The kind `prompt` needs nomux 0.5.0 or
 The manifest cannot state a nomux version: `[extension]` has only `id`, `name`, `version` and `api`, and nomux 0.4.0 and 0.5.0 have the same extension API version 0.1.1.
 
 ```console
-$ nomux ext install ./nomux-agent-claude-0.1.0-x86_64-unknown-linux-musl --grant-all
-extension nomux.agent-claude 0.1.0 installed with the permissions: scope=hooks:read scope=agent:report
+$ nomux ext install ./nomux-agent-claude-0.1.1-x86_64-unknown-linux-musl --grant-all
+extension nomux.agent-claude 0.1.1 installed with the permissions: scope=hooks:read scope=agent:report
 ```
 
 An adapter with the scope `agent:report` can report for each session of the host: [`docs/adapters.md`](https://github.com/nomux-sh/nomux/blob/main/docs/adapters.md#host-services) says why.
