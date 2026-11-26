@@ -8,8 +8,13 @@ and this extension adheres to [Semantic Versioning](https://semver.org/spec/v2.0
 [git-cliff](https://git-cliff.org) writes this file from the commit subjects.
 The commands are at the top of `cliff.toml` in the repository root.
 
-## [Unreleased]
+## [0.1.0] - 2026-11-26
 
 ### Added
 
 - Add the adapter extension for Claude Code
+
+### Documentation
+
+- Describe the Claude Code adapter and its rule table
+- Describe the release workflow and how to install a release
