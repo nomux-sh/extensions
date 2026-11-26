@@ -1,0 +1,10 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000100",
+  "transcript_path": "/home/user/.claude/projects/-home-user-project/00000000-0000-4000-8000-000000000100.jsonl",
+  "cwd": "/home/user/project",
+  "hook_event_name": "Elicitation",
+  "mcp_server_name": "my-mcp-server",
+  "message": "Please authenticate",
+  "mode": "url",
+  "url": "https://auth.example.com/login"
+}

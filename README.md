@@ -14,6 +14,7 @@ No extension has a release yet.
 
 | Extension | Identifier | Directory | State |
 |---|---|---|---|
+| Claude Code adapter | `nomux.agent-claude` | [agent-claude](agent-claude) | The daemon part is available: the status of a Claude Code session and of its subagents from the hooks of Claude Code, and the install description of the hooks. The UI part is not available yet. |
 | Git | `nomux.git` | [git](git) | The daemon part is available: status, diff, staging, commit, branches, log, blame, worktrees and a status that comes from file events. The UI part is not available yet. |
 
 No other extension exists yet. The [roadmap](https://github.com/nomux-sh/docs/blob/main/src/content/docs/project/roadmap.md) gives the plan.
@@ -30,7 +31,7 @@ The repository is one Cargo workspace. Each extension has one directory at the r
 | `<name>/README.md` | Methods, events, permissions and limits of the extension. |
 | `<name>/CHANGELOG.md` | The changelog of the extension. |
 | `<name>/proto/` | Protobuf schemas of the messages of the daemon part. |
-| `<name>/daemon/` | The crate of the daemon part, with the generated code (committed) and the tests. |
+| `<name>/daemon/` | The crate of the daemon part, with the generated code (committed) if the extension has schemas, and the tests. |
 | `<name>/ui/`, `<name>/locales/` | The UI part and its texts. No extension has them yet. |
 | `tools/protoc-gen-nomux-prost/` | Local `buf` plugin that runs `prost-build`. Not published. |
 | `scripts/check-generated.sh` | Fails if the generated code is stale. |
@@ -56,7 +57,7 @@ To build an extension, only Rust is necessary. `buf` is necessary only to change
 
 ## Code generation
 
-The generated Rust code of each daemon part is committed in `<name>/daemon/src/generated/`. No crate has a `build.rs`.
+The generated Rust code of each daemon part that has schemas is committed in `<name>/daemon/src/generated/`. No crate has a `build.rs`.
 
 `buf generate` starts a plugin that is a binary in this workspace (`tools/protoc-gen-nomux-prost`), and the plugin calls `prost-build` with the descriptors from `buf`. `Cargo.lock` pins `prost-build` and the `prost` runtime to the same version, and no remote plugin or schema registry is used.
 

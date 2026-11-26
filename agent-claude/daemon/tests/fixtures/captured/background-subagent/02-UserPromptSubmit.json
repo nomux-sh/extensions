@@ -1,0 +1,9 @@
+{
+  "session_id": "00000000-0000-4000-8000-000000000003",
+  "transcript_path": "/home/user/.claude/projects/-tmp-nomux-test-work/00000000-0000-4000-8000-000000000003.jsonl",
+  "cwd": "/tmp/nomux-test/work",
+  "prompt_id": "00000000-0000-4000-8000-000000000004",
+  "permission_mode": "default",
+  "hook_event_name": "UserPromptSubmit",
+  "prompt": "Call the Agent tool exactly once, with subagent_type \"general-purpose\", run_in_background true, description \"read a.txt\", and the prompt \"Read a.txt with the Read tool and reply with its first word.\" Do not wait for the subagent: after you start it, end your turn and reply with the single word: started."
+}
