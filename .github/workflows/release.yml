@@ -1,0 +1,212 @@
+name: Release
+
+# A tag `<name>@<version>` (for example `git@0.1.0`) builds the daemon part of
+# the extension in the directory <name> for four targets and makes the GitHub
+# release with one archive for each target and SHA256SUMS. A manual run with
+# `dry-run` does the same checks and builds the same archives as workflow
+# artifacts, and makes no release. The release rule is in README.md.
+
+on:
+  push:
+    tags: ["*@[0-9]*"]
+  workflow_dispatch:
+    inputs:
+      extension:
+        description: The directory of the extension.
+        type: choice
+        options: [git, agent-claude]
+      dry-run:
+        description: Build the archives as workflow artifacts. Create no release.
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# A second run for the same tag waits. A release is not cancelled in the
+# middle of an upload.
+concurrency:
+  group: release-${{ github.ref }}-${{ inputs.extension }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  # `true` when the run makes a release. The condition of the `github-release`
+  # job is the same expression.
+  RELEASE: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry-run) }}
+  # The oldest released nomux that the extensions support. The check job
+  # validates the manifest with it, and the release notes name it.
+  NOMUX_VERSION: 0.4.0
+  NOMUX_SHA256: 5fbd9c4bca24e5da0903e6a143b3e3b912bac05675bd453ce53f08ddf6619bdd
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      name: ${{ steps.extension.outputs.name }}
+      version: ${{ steps.extension.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The check of the `main` branch reads the history.
+          fetch-depth: 0
+      - name: Read the extension and its version
+        id: extension
+        env:
+          INPUT_EXTENSION: ${{ inputs.extension }}
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            name="${GITHUB_REF_NAME%%@*}"
+          else
+            name="$INPUT_EXTENSION"
+          fi
+          version="$(scripts/extension-version.sh "$name")"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Extension $name, version $version"
+      - name: Check that the tag is equal to the version
+        if: env.RELEASE == 'true'
+        env:
+          NAME: ${{ steps.extension.outputs.name }}
+          VERSION: ${{ steps.extension.outputs.version }}
+        run: |
+          if [ "$GITHUB_REF_TYPE" != "tag" ] || [ "$GITHUB_REF_NAME" != "$NAME@$VERSION" ]; then
+            echo "::error::A release needs the tag $NAME@$VERSION. This run is for the $GITHUB_REF_TYPE $GITHUB_REF_NAME."
+            exit 1
+          fi
+      - name: Check that the commit is on main
+        if: env.RELEASE == 'true'
+        run: |
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::The commit of $GITHUB_REF_NAME is not on the main branch."
+            exit 1
+          fi
+      - name: Check that the changelog has the section of the version
+        env:
+          NAME: ${{ steps.extension.outputs.name }}
+          VERSION: ${{ steps.extension.outputs.version }}
+        run: scripts/release-notes.sh "$NAME" "$VERSION"
+      - name: Install nomux
+        run: |
+          set -euo pipefail
+          archive="nomux-${NOMUX_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/nomux-sh/nomux/releases/download/v${NOMUX_VERSION}/$archive"
+          echo "$NOMUX_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/${archive%.tar.gz}" >> "$GITHUB_PATH"
+      - name: nomux ext validate
+        env:
+          NAME: ${{ steps.extension.outputs.name }}
+        run: |
+          nomux --version
+          nomux ext validate "$NAME"
+
+  # Each Linux target has a runner with its own processor type. One macOS
+  # runner builds the two Apple targets, because the wait for a macOS runner
+  # is longer than the builds. Thus no cross-compilation tool is necessary.
+  build:
+    name: build (${{ matrix.name }})
+    needs: check
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - name: linux-x86_64
+            runner: ubuntu-latest
+            targets: x86_64-unknown-linux-musl
+          - name: linux-aarch64
+            runner: ubuntu-24.04-arm
+            targets: aarch64-unknown-linux-musl
+          - name: macos
+            runner: macos-latest
+            targets: x86_64-apple-darwin aarch64-apple-darwin
+    env:
+      NAME: ${{ needs.check.outputs.name }}
+      TARGETS: ${{ matrix.targets }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+      # The key has the extension and the runner: the dependencies of a
+      # daemon part and the targets of a runner are different.
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          key: release-${{ needs.check.outputs.name }}-${{ matrix.name }}
+      - name: Build, pack and check each target
+        run: |
+          for target in $TARGETS; do
+            echo "::group::$target"
+            scripts/build-extension.sh "$NAME" "$target"
+            echo "::endgroup::"
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: archives-${{ matrix.name }}
+          path: target/dist/nomux-*.tar.gz
+          if-no-files-found: error
+
+  checksums:
+    name: checksums
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: archives-*
+          path: dist
+          merge-multiple: true
+      - name: Write SHA256SUMS
+        working-directory: dist
+        run: sha256sum nomux-*.tar.gz | tee SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: checksums
+          path: dist/SHA256SUMS
+          if-no-files-found: error
+
+  github-release:
+    name: GitHub release
+    needs: [check, checksums]
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry-run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ needs.check.outputs.name }}
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          # A version earlier than 1.0.0 or with a suffix is a pre-release.
+          flags=()
+          case "$VERSION" in
+            0.* | *-*) flags+=(--prerelease) ;;
+          esac
+          scripts/release-notes.sh "$NAME" "$VERSION" > "$RUNNER_TEMP/notes.md"
+          printf '\nNeeds nomux %s or later. [Install a released extension](%s) tells how to install it.\n' \
+            "$NOMUX_VERSION" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY#install-a-released-extension" >> "$RUNNER_TEMP/notes.md"
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" \
+            --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}" \
+            dist/nomux-*.tar.gz dist/SHA256SUMS
