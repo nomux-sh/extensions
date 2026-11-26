@@ -86,6 +86,34 @@ fn an_agent_identifier_that_is_not_a_child_work_identifier_gives_no_report() {
 }
 
 #[test]
+fn an_agent_identifier_on_an_event_of_the_main_agent_gives_no_report() {
+    let mut memory = Memory::default();
+    support::send(&mut memory, "UserPromptSubmit", json!({"prompt": "go"}));
+    let fields = json!({"agent_id": "a45f24c823c444cb5", "background_tasks": [], "error": "rate_limit", "to_model": "x"});
+    for name in [
+        "SessionStart",
+        "Stop",
+        "StopFailure",
+        "SessionEnd",
+        "PostModelSwitch",
+    ] {
+        assert!(
+            support::send(&mut memory, name, fields.clone()).is_empty(),
+            "{name}"
+        );
+    }
+    assert!(
+        support::send(
+            &mut memory,
+            "SubagentStart",
+            json!({"agent_type": "Explore"})
+        )
+        .is_empty(),
+        "a subagent start without an agent identifier"
+    );
+}
+
+#[test]
 fn huge_texts_become_short_lines() {
     let mut memory = Memory::default();
     let huge = format!("{}\n{}", "é".repeat(60_000), "\u{7}".repeat(1000));
