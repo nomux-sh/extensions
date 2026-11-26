@@ -20,10 +20,12 @@ Rules for coding agents and for people who work in this repository. `CLAUDE.md` 
 | `git/daemon/tests/` | Tests against real temporary repositories. `repositories/` makes the repositories and `test_host/` is the host of the test that runs the program. |
 | `tools/protoc-gen-nomux-prost/` | The `buf` plugin that writes the generated code. Not published. |
 | `scripts/check-generated.sh` | Fails when the generated code is stale. |
+| `scripts/build-extension.sh`, `scripts/check-extension-archive.sh` | Build, pack and examine the release archive of one extension for one target. |
+| `scripts/extension-version.sh`, `scripts/release-notes.sh` | Print the version of an extension and the changelog section of a version. |
 | `buf.yaml`, `buf.gen.yaml` | `buf` modules, lint rules, code generation. |
 | `Cargo.toml`, `deny.toml`, `rust-toolchain.toml` | Workspace members and shared versions, license and source policy, pinned toolchain. |
 | `cliff.toml` | Changelog configuration for all extensions. |
-| `.github/workflows/` | `ci.yml` (checks) and `pull-request.yml` (sign-off, commit messages). |
+| `.github/workflows/` | `ci.yml` (checks), `pull-request.yml` (sign-off, commit messages) and `release.yml` (the release of one extension from its tag). |
 
 ## Layout of an extension
 
@@ -61,7 +63,7 @@ Each extension has one directory at the repository root. The name of the directo
 - The version in `extension.toml` and the version of the crate of the daemon part are equal. A test compares them. Change them together.
 - The tests of the `git` extension use real repositories in temporary directories and the real `git` program. Do not replace git with a mock.
 - Pin each action in a workflow to a full commit SHA with a version comment.
-- The release rule is in [README.md](README.md#releases). The release workflow does not exist yet: do not add a tag.
+- The release rule and the release workflow are in [README.md](README.md#releases). A maintainer adds the tag after the merge of the release pull request. Do not add a tag in a pull request.
 
 ## Checks
 
