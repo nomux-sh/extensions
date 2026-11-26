@@ -10,12 +10,12 @@ In development. Versions earlier than 1.0.0 are pre-releases: interfaces can cha
 
 ## Extensions
 
-| Extension | Identifier | Directory | Version | State |
-|---|---|---|---|---|
-| Claude Code adapter | `nomux.agent-claude` | [agent-claude](agent-claude) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/agent-claude@0.1.0) | The daemon part is available: the status of a Claude Code session and of its subagents from the hooks of Claude Code, and the install description of the hooks. The UI part is not available yet. |
-| Git | `nomux.git` | [git](git) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/git@0.1.0) | The daemon part is available: status, diff, staging, commit, branches, log, blame, worktrees and a status that comes from file events. The UI part is not available yet. |
+| Extension | Identifier | Directory | Version | Needs nomux | State |
+|---|---|---|---|---|---|
+| Claude Code adapter | `nomux.agent-claude` | [agent-claude](agent-claude) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/agent-claude@0.1.0) | 0.4.0 or later. The kind `prompt` needs 0.5.0 or later | The daemon part is available: the status of a Claude Code session and of its subagents from the hooks of Claude Code, and the install description of the hooks. The UI part is not available yet. |
+| Git | `nomux.git` | [git](git) | [0.1.0](https://github.com/nomux-sh/extensions/releases/tag/git@0.1.0) | 0.4.0 or later | The daemon part is available: status, diff, staging, commit, branches, log, blame, worktrees and a status that comes from file events. The UI part is not available yet. |
 
-Each extension needs nomux 0.4.0 or later. No other extension exists yet. The [roadmap](https://github.com/nomux-sh/docs/blob/main/src/content/docs/project/roadmap.md) gives the plan.
+The manifest of an extension cannot state the nomux version that it needs: the README of the extension states it. No other extension exists yet. The [roadmap](https://github.com/nomux-sh/docs/blob/main/src/content/docs/project/roadmap.md) gives the plan.
 
 An extension uses only the public extension API: the crate [`nomux-extension`](https://crates.io/crates/nomux-extension) of the [`extension-api`](https://github.com/nomux-sh/extension-api) repository. [ADR-0005](https://github.com/nomux-sh/docs/blob/main/adr/0005-extension-model.md) records the extension model.
 
@@ -40,7 +40,18 @@ nomux-<name>-<version>-<target>/
   LICENSE-MIT
 ```
 
-`nomux ext install` reads a package from a directory. It does not read an archive or a URL. Thus, download the archive, examine its checksum and extract it first. For the `git` extension 0.1.0 on Linux x86-64:
+The install steps are different for each nomux version:
+
+| nomux | `nomux ext install` reads | Steps |
+|---|---|---|
+| 0.4.0 and 0.5.0 | A package directory only. It does not read an archive, a URL or a name | [With a released nomux](#with-a-released-nomux) |
+| The release after 0.5.0 (not released yet) | A package directory, a release archive, an `https` address of an archive, or a name | [With the next nomux release](#with-the-next-nomux-release) |
+
+`nomux --version` shows your version.
+
+### With a released nomux
+
+Download the archive of your computer, examine its checksum, extract it, and give the directory to `nomux ext install`. For the `git` extension 0.1.0 on Linux x86-64:
 
 ```sh
 tag=git@0.1.0
@@ -58,6 +69,19 @@ Without `gh`, download the two files from `https://github.com/nomux-sh/extension
 - `--grant-all` does not approve a directory that starts with `${worktree}`. Give each directory with `--grant fs=<directory>`.
 - To install a new version, remove the old version first: `nomux ext rm <id>`.
 - The package must stay a directory of regular files. The host refuses a symbolic link.
+
+### With the next nomux release
+
+The `main` branch of nomux ([nomux-sh/nomux#120](https://github.com/nomux-sh/nomux/pull/120)) downloads the archive of the host, examines the checksum and extracts the package itself. The first nomux release after 0.5.0 will have this change. nomux 0.5.0 does not have it.
+
+```sh
+nomux ext install git --grant-all --grant fs=<directory with your worktrees>   # the newest release
+nomux ext install git@0.1.0 --grant-all --grant fs=<directory with your worktrees>
+```
+
+- The name is the directory of the extension in this repository: `git` or `agent-claude`.
+- The command shows the extension, its version, its target, the result of the checksum and its permissions, and then asks you to accept. `--yes` accepts without the question.
+- The rules for the permissions and for a new version are the same as above.
 
 ## Layout
 

@@ -6,7 +6,7 @@ This directory has the daemon part of the extension. The nomux daemon starts the
 
 ## Status
 
-In development. Version 0.1.0 is the first release. It needs nomux 0.4.0 or later. The messages can change in a minor version until version 1.0.0. The [root README](../README.md#install-a-released-extension) tells how to install a released version.
+In development. Version 0.1.0 is the first release. It needs nomux 0.4.0 or later. The messages can change in a minor version until version 1.0.0. The [root README](../README.md#install-a-released-extension) tells how to install a released version with each nomux version.
 
 These parts are not available yet:
 

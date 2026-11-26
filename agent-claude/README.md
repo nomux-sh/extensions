@@ -84,7 +84,16 @@ The hook data has no command line of Claude Code, thus the adapter makes the res
 | `scope=hooks:read` | The daemon gives the hook events of `claude` to the extension |
 | `scope=agent:report` | The host services `agent.report` and `agent.child` |
 
-The extension asks for no file, process or network permission. It reads no transcript and no file of Claude Code. `nomux ext install` asks the user to approve the two scopes. The package directory has `extension.toml` and the program `bin/nomux-agent-claude`. The extension needs nomux 0.4.0 or later. The archive of a release has this directory: the [root README](../README.md#install-a-released-extension) tells how to install it.
+The extension asks for no file, process or network permission. It reads no transcript and no file of Claude Code. `nomux ext install` asks the user to approve the two scopes. The package directory has `extension.toml` and the program `bin/nomux-agent-claude`. The archive of a release has this directory: the [root README](../README.md#install-a-released-extension) tells how to install it with each nomux version.
+
+The extension needs nomux 0.4.0 or later. The kind `prompt` needs nomux 0.5.0 or later:
+
+| nomux | The idle prompt of Claude Code |
+|---|---|
+| 0.5.0 or later | `needs you: prompt`. The host can hibernate the session at its prompt |
+| 0.4.0 | `needs you` without a kind. The host takes the report, but it does not know the kind `prompt` and drops it. nomux 0.4.0 has no hibernation |
+
+The manifest cannot state a nomux version: `[extension]` has only `id`, `name`, `version` and `api`, and nomux 0.4.0 and 0.5.0 have the same extension API version 0.1.1.
 
 ```console
 $ nomux ext install ./nomux-agent-claude-0.1.0-x86_64-unknown-linux-musl --grant-all
@@ -123,6 +132,7 @@ Each event of the table gets one matcher group without a matcher. The handler ru
 
 - Claude Code 2.1.332 on Linux x86-64: five short runs in print mode with the cheapest model, in a temporary working directory, with the hooks from `nomux hooks install claude` in a temporary file given with `--settings`. `tests/fixtures/captured/` has the hook data of these runs without local paths, user names and identifiers. `tests/fixtures/documented/` has the data of the events that the runs did not show, written from the [hooks reference](https://code.claude.com/docs/en/hooks).
 - nomux `main` (commit `e0534b0`), and the released nomux 0.4.0 with the release archive.
+- The released nomux 0.4.0 and 0.5.0 with the hook data of a turn and of an idle prompt, sent with `nomux hook claude <event>` in a session.
 
 ## Limits
 
