@@ -24,6 +24,7 @@ fn facts(repository: &TestRepository) -> WorktreeFactsResponse {
 fn facts_with(repository: &TestRepository, permissions: &Permissions) -> WorktreeFactsResponse {
     let request = WorktreeFactsRequest {
         repository: repository.path(),
+        base_branch: String::new(),
     };
     worktree_facts(permissions, request).unwrap()
 }
@@ -322,4 +323,39 @@ fn listing(root: &Path) -> BTreeMap<PathBuf, (u64, SystemTime)> {
         }
     }
     listing
+}
+
+#[test]
+fn the_base_branch_of_the_user_replaces_the_rule_when_it_exists() {
+    let repository = pushed();
+    repository.git(&["branch", "develop"]);
+    let feature = add_worktree(&repository, "feature", "feature");
+    commit_in(&feature, "f.txt", "f\n");
+    repository.git(&["branch", "--force", "develop", "feature"]);
+    let with_base = |base_branch: &str| {
+        worktree_facts(
+            &repository.permissions(),
+            WorktreeFactsRequest {
+                repository: repository.path(),
+                base_branch: base_branch.to_owned(),
+            },
+        )
+        .unwrap()
+    };
+
+    let rule = with_base("");
+    let develop = with_base("develop");
+    let unknown = with_base("no-such-branch");
+
+    assert_eq!(rule.base_branch, "origin/main");
+    assert_eq!(
+        of(&rule, "feature").merged_by(),
+        WorktreeMergedBy::Unspecified
+    );
+    assert_eq!(develop.base_branch, "develop");
+    assert_eq!(
+        of(&develop, "feature").merged_by(),
+        WorktreeMergedBy::Ancestor
+    );
+    assert_eq!(unknown.base_branch, "origin/main");
 }

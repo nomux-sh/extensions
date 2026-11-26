@@ -20,7 +20,7 @@ use nomux_proto::wire::v1::{
     WorktreeFacts, WorktreeFactsRequest, WorktreeFactsResponse, WorktreeMergedBy,
 };
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::path_safety::GrantedDirectories;
 use crate::repository::Repository;
 use crate::upstream;
@@ -38,7 +38,7 @@ pub fn worktree_facts(
     let repository = Repository::open(permissions, &request.repository)?;
     let granted = GrantedDirectories::new(&permissions.fs);
     let gix = repository.gix();
-    let base = BaseBranch::find(gix)?;
+    let base = BaseBranch::find(gix, &request.base_branch)?;
     let mut worktrees = vec![main_facts(&gix.main_repo()?, &granted, base.as_ref())?];
     for proxy in gix.worktrees()? {
         worktrees.push(linked_facts(proxy, &granted, base.as_ref())?);
@@ -48,6 +48,27 @@ pub fn worktree_facts(
         last_fetch_at_ms: modified_ms(&gix.common_dir().join("FETCH_HEAD")),
         worktrees,
     })
+}
+
+/// The facts of the linked worktree whose directory is `path`, with the
+/// base branch `base_branch` of the user (empty: the rule), for a change of
+/// git that checks the facts again.
+pub(crate) fn of_linked(
+    repository: &gix::Repository,
+    path: &Path,
+    granted: &GrantedDirectories,
+    base_branch: &str,
+) -> Result<WorktreeFacts> {
+    let base = BaseBranch::find(repository, base_branch)?;
+    for proxy in repository.worktrees()? {
+        if proxy.base()?.canonicalize().is_ok_and(|base| base == path) {
+            return linked_facts(proxy, granted, base.as_ref());
+        }
+    }
+    Err(Error::not_found(format!(
+        "{} is not a linked worktree of the repository",
+        path.display()
+    )))
 }
 
 /// The branch that the merge rules compare with.
@@ -61,10 +82,19 @@ struct BaseBranch {
 }
 
 impl BaseBranch {
-    /// The branch that `origin/HEAD` names, else `main`, else `master`; the
+    /// The branch `user_choice` of the user if it exists, else the branch
+    /// that `origin/HEAD` names, else `main`, else `master`; the
     /// remote-tracking branch before the local branch.
-    fn find(repository: &gix::Repository) -> Result<Option<Self>> {
+    fn find(repository: &gix::Repository, user_choice: &str) -> Result<Option<Self>> {
         let mut candidates = Vec::new();
+        if !user_choice.is_empty() {
+            for name in [
+                format!("refs/remotes/{user_choice}"),
+                format!("refs/heads/{user_choice}"),
+            ] {
+                candidates.extend(FullName::try_from(name).ok());
+            }
+        }
         if let Some(reference) = repository.try_find_reference("refs/remotes/origin/HEAD")?
             && let Some(target) = reference.target().try_name()
         {
@@ -83,10 +113,13 @@ impl BaseBranch {
                 continue;
             };
             let short_name = name.as_ref().shorten().to_string();
-            let local_name = short_name
-                .strip_prefix("origin/")
-                .unwrap_or(&short_name)
-                .to_owned();
+            let local_name = match name.as_bstr().strip_prefix(b"refs/remotes/") {
+                Some(_) => short_name
+                    .split_once('/')
+                    .map_or(short_name.as_str(), |(_, branch)| branch)
+                    .to_owned(),
+                None => short_name.clone(),
+            };
             return Ok(Some(Self {
                 short_name,
                 local_name,

@@ -18,7 +18,7 @@ These parts are not available yet:
 ## Design
 
 - **Reads use `gix`.** Status, diff, branches, log, blame and the list of worktrees read the repository in the process of the extension. They start no `git` process.
-- **Writes use the `git` program of the user.** Stage, unstage, commit, switch, branch creation, and the addition and removal of a worktree run `git`. Thus the hooks, the signing and the configuration of the user apply.
+- **Writes use the `git` program of the user.** Stage, unstage, commit, switch, branch creation, the addition and removal of a worktree, and the changes of a clean of the nomux daemon run `git`. Thus the hooks, the signing and the configuration of the user apply.
 - **The status comes from events.** A worktree with a subscriber has a watch. A worktree without a subscriber has no watch, no thread and no cached status.
 
 ## Permissions
@@ -39,7 +39,7 @@ The extension applies the approved permissions to each request:
 
 ## Methods
 
-The argument and the result of each method are protobuf messages of the package `nomux.git.v1`, except for `worktree_facts`: the nomux daemon calls it, thus its messages are in the package `nomux.wire.v1` of the crate `nomux-proto`. The schemas are in [proto/nomux/git/v1](proto/nomux/git/v1), and they are the authority for the fields. The generated Rust types are in the crate `nomux-git`, module `wire::v1`.
+The argument and the result of each method are protobuf messages of the package `nomux.git.v1`, except for `worktree_facts` and the four methods of a clean: the nomux daemon calls them, thus their messages are in the package `nomux.wire.v1` of the crate `nomux-proto`. The schemas are in [proto/nomux/git/v1](proto/nomux/git/v1), and they are the authority for the fields. The generated Rust types are in the crate `nomux-git`, module `wire::v1`.
 
 Each request has a `repository` field: the absolute path of the root of a worktree. A path of a file is relative to that root, with `/` between its parts.
 
@@ -59,6 +59,10 @@ Each request has a `repository` field: the absolute path of the root of a worktr
 | `worktree_add` | `WorktreeAddRequest`, `WorktreeAddResponse` | Adds a linked worktree for a branch, or for a new branch. |
 | `worktree_remove` | `WorktreeRemoveRequest`, `WorktreeRemoveResponse` | Removes a linked worktree if the removal loses no work. |
 | `worktree_facts` | `WorktreeFactsRequest`, `WorktreeFactsResponse` of `nomux-proto` | The git facts of each worktree of a repository, for the worktree list of the nomux daemon. |
+| `worktree_move_to_trash` | `WorktreeMoveToTrashRequest`, `WorktreeMoveToTrashResponse` of `nomux-proto` | Moves a linked worktree to the trash place of the nomux daemon and locks it, if a removal would lose no work. |
+| `worktree_move_from_trash` | `WorktreeMoveFromTrashRequest`, `WorktreeMoveFromTrashResponse` of `nomux-proto` | Unlocks a worktree of the trash place and moves it back. |
+| `worktree_delete` | `WorktreeDeleteRequest`, `WorktreeDeleteResponse` of `nomux-proto` | Removes a linked worktree if the removal loses no work, and deletes its branch if the base branch has each change of it. |
+| `worktree_prune` | `WorktreePruneRequest`, `WorktreePruneResponse` of `nomux-proto` | Removes the records of the linked worktrees whose directory is missing. |
 | `watch` | `WatchRequest`, `WatchResponse` | Starts a subscription to the status of a worktree. |
 | `unwatch` | `UnwatchRequest`, `UnwatchResponse` | Ends a subscription. |
 
@@ -113,6 +117,24 @@ Each request has a `repository` field: the absolute path of the root of a worktr
 - The branch of the worktree stays.
 - A repository without a remote has no remote-tracking branch. Each commit is then "not pushed", and the method removes no worktree that has a commit.
 - The main worktree cannot be removed.
+
+### The changes of a clean
+
+The nomux daemon calls these four methods for `nomux worktree clean`, `nomux worktree restore` and the end of the grace time of the trash place. [`spec/worktree.md`](https://github.com/nomux-sh/proto/blob/main/spec/worktree.md#the-changes-of-git) of the `proto` repository has the rules. The daemon checks each change in its plan, and each method checks the facts of the worktree again before it runs `git`: a change is refused in two places.
+
+| Method | `git` commands | Refuses |
+|---|---|---|
+| `worktree_move_to_trash` | `git worktree move`, then `git worktree lock --reason nomux-trash` | The main worktree; a missing directory; changes that are not committed; commits that are not pushed, unless `allow_unpushed` or the base branch has each change; detached commits; a lock; a submodule; an ignored path that is not in `allowed_ignored_paths`; a trash place on a different file system |
+| `worktree_move_from_trash` | `git worktree unlock`, then `git worktree move` | A worktree that is not locked with the reason `nomux-trash`; a destination that exists |
+| `worktree_delete` | `git worktree unlock` (only the lock `nomux-trash`), `git worktree remove`, then with `delete_branch` `git branch -D` | The checks of `worktree_move_to_trash`, except the lock `nomux-trash`. The branch stays when the base branch does not have each change of it (`ANCESTOR` or `TREE`) |
+| `worktree_prune` | `git worktree prune` | A set of prunable records that is different from the request |
+
+- No method passes `--force` to git. `git branch -D` runs only after the check of the merge rule, because `git branch -d` refuses a branch that a rebase merge or a squash merge put on the base branch.
+- A `HEAD` that is different from `expected_head` is an error: the plan of the daemon is old.
+- A refusal is not an error: the result has the refusals and a message.
+- A removal that fails after the unlock locks the worktree again with the reason `nomux-trash`.
+- The trash place is the directory `.nomux-trash` in the parent directory of a worktree. Approve a directory that contains the worktrees and their parent directory.
+- `worktree_facts` and the four methods take `base_branch`: the base branch that the user set in the settings of the daemon. The extension uses it when the branch exists, first as a remote-tracking branch, then as a local branch.
 
 ### Worktree facts
 
