@@ -1,0 +1,97 @@
+name: CI
+
+# The shared jobs call the reusable workflows of the organization. The steps
+# are in https://github.com/nomux-sh/.github/tree/main/.github/workflows
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  # No breaking change check yet: no extension has a release tag. The check
+  # starts together with the release workflow.
+  buf:
+    uses: nomux-sh/.github/.github/workflows/buf-ci.yml@main
+    with:
+      working-directory: .
+
+  rust:
+    uses: nomux-sh/.github/.github/workflows/rust-ci.yml@main
+    with:
+      # The tests run on Linux and on macOS: the file watcher of the `git`
+      # extension uses inotify on Linux and FSEvents on macOS.
+      os: '["ubuntu-latest", "macos-latest"]'
+      # The lints do not depend on the host, and macOS runners have a queue.
+      clippy-os: '["ubuntu-latest"]'
+      working-directory: .
+      run-deny: true
+      run-machete: true
+
+  repo-lint:
+    uses: nomux-sh/.github/.github/workflows/repo-lint.yml@main
+    with:
+      license: code
+      # Each extension has its own CHANGELOG.md. The root has none.
+      require-changelog: false
+
+  generated:
+    name: generated code is up to date
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUF_VERSION: 1.75.0
+      BUF_SHA256: fad1e38d6909bbb583a4da81d8c02a01046e2cd663bde7e337dd24277393764b
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install buf
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL -o "$RUNNER_TEMP/bin/buf" \
+            "https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-Linux-x86_64"
+          echo "${BUF_SHA256}  $RUNNER_TEMP/bin/buf" | sha256sum --check -
+          chmod +x "$RUNNER_TEMP/bin/buf"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: Install the toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Check generated code
+        run: scripts/check-generated.sh
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      ACTIONLINT_VERSION: 1.7.12
+      ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install actionlint
+        run: |
+          set -euo pipefail
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$archive"
+          echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
+      - name: actionlint
+        run: |
+          "$RUNNER_TEMP/actionlint" -version
+          "$RUNNER_TEMP/actionlint" -color
