@@ -1,0 +1,45 @@
+[workspace]
+resolver = "3"
+members = ["tools/protoc-gen-nomux-prost"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+authors = ["The nomux Authors"]
+repository = "https://github.com/nomux-sh/extensions"
+
+[workspace.dependencies]
+# Only the parts that the read methods use. The default features add the
+# network clients, the pack caches and the progress units.
+gix = { version = "0.91.0", default-features = false, features = ["sha1", "status", "blame", "revision"] }
+gix-notify = "0.1.0"
+nomux-extension = "0.1.0"
+# `prost`, `prost-build` and `prost-types` must have the same version: the
+# generated code of an extension is the output of this `prost-build`, and
+# `prost` is the version that `nomux-extension` uses.
+prost = "0.14.6"
+prost-build = "0.14.6"
+prost-types = "0.14.6"
+tempfile = "3.27.0"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# The release profile of the nomux binaries: small and fast. `panic = "abort"`
+# removes the unwind tables. A panic stops the process, and the nomux daemon
+# reports the failure of the extension.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

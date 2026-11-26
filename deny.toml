@@ -1,0 +1,51 @@
+# cargo-deny configuration. Run `cargo deny check`.
+
+[graph]
+all-features = true
+# An extension runs on a nomux host: Linux or macOS. The check does not read
+# the dependencies that only other targets build.
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-unknown-linux-musl",
+    "aarch64-unknown-linux-musl",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+]
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+# A license that is not in this list fails the check. Thus GPL, AGPL and LGPL
+# dependencies are denied: the list is the only permitted set.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "MPL-2.0",
+    "Unicode-3.0",
+]
+confidence-threshold = 0.93
+# The list is the same in all nomux repositories. Not all licenses occur in
+# the dependencies of this repository.
+unused-allowed-license = "allow"
+
+[licenses.private]
+# The crates of the workspace have `publish = false`. Check their license too.
+ignore = false
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
