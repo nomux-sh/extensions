@@ -6,10 +6,15 @@
 # commit subject has no scope, thus the path selects the commits of one
 # extension. For the `git` extension:
 #
+# `--include-path` selects the commits that change a file in the directory
+# (the `include_paths` key of `[git]`, which is one value for all extensions).
+# `--tag-pattern` is a regular expression: the `^` prevents that the tags of
+# a different extension match.
+#
 # Show the unreleased changes:
-#   git cliff --include-path 'git/**' --tag-pattern 'git@*' --unreleased
+#   git cliff --include-path 'git/**' --tag-pattern '^git@' --unreleased
 # Write the file for a release:
-#   git cliff --include-path 'git/**' --tag-pattern 'git@*' --tag git@X.Y.Z --output git/CHANGELOG.md
+#   git cliff --include-path 'git/**' --tag-pattern '^git@' --tag git@X.Y.Z --output git/CHANGELOG.md
 
 [changelog]
 header = """
