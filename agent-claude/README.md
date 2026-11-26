@@ -23,7 +23,7 @@ The extension sends no event of its own and has no schema of its own: the messag
 
 ## Rules
 
-`daemon/src/rules.rs` has the table. For one event, the first row with the event and a true condition decides. A row reports for the agent that the event comes from: the main agent (the Agent run), or the subagent or teammate of the `agent_id` field (a Child work). An event without a row gives no report.
+`daemon/src/rules.rs` has the table. For one event, the first row with the event and a true condition decides. A row reports for the agent that the event comes from: the main agent (the Agent run), or the subagent or teammate of the `agent_id` field (a Child work). An event without a row gives no report. The rows of `SessionStart`, `Stop`, `StopFailure`, `SessionEnd` and `PostModelSwitch` apply only to an event of the main agent, and the rows of `SubagentStart`, `SubagentStop` and `TeammateIdle` only to an event with an `agent_id`.
 
 Before the table decides, the `background_tasks` list of a `Stop` event reconciles the Child work, if the event has the list: a subagent or teammate that the list does not have ends as `done`, and an item of type `subagent` or `teammate` that the adapter did not see starts. A `Stop` event without the list changes no Child work. The list of a `SubagentStop` event is not used: in a real run it still has the subagent that stops.
 
@@ -126,7 +126,7 @@ Each event of the table gets one matcher group without a matcher. The handler ru
 
 ## Limits
 
-- When the command of a session is `claude` and it ends, the session ends, and `nomux status` shows nothing of its last result and its resume command. The status stays only if the session has a process after Claude Code, for example a shell.
+- When the command of a session is `claude` and it ends, the session ends, and `nomux status` shows nothing of its last result and its resume command: "An ended session has no Agent run" ([`docs/status.md`](https://github.com/nomux-sh/nomux/blob/main/docs/status.md#sessions-without-a-process)). The status stays only if the session has a process after Claude Code, for example a shell. This needs a change of the host, not of the adapter: an ended session could keep its last Agent run as a dormant session does (`working` and `needs you` become `done`, a result stays) and its details, until the user sees the result or removes the session.
 - `SessionStart` of Claude Code does not always have the model. Then the details have no model until a `PostModelSwitch`.
 - The detail of a permission request comes from the input of the tool. A word that looks like a key, a token or a password is `[hidden]`, but a secret of a different form can show in the detail of a command.
 - The Child work is one level below the Agent run: a subagent of a subagent is a Child work of the Agent run.
