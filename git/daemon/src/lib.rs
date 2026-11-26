@@ -30,6 +30,7 @@ pub mod staging;
 pub mod status;
 mod upstream;
 pub mod watch;
+pub mod worktree_facts;
 pub mod worktrees;
 
 use error::Result;
@@ -74,6 +75,7 @@ pub fn extension() -> Extension {
             "worktree_remove",
             writing(&watches, worktrees::worktree_remove),
         )
+        .method("worktree_facts", reading(worktree_facts::worktree_facts))
         .method("watch", watch(&watches))
         .method("unwatch", unwatch(&watches))
 }

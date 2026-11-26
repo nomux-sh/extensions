@@ -39,7 +39,7 @@ The extension applies the approved permissions to each request:
 
 ## Methods
 
-The argument and the result of each method are protobuf messages of the package `nomux.git.v1`. The schemas are in [proto/nomux/git/v1](proto/nomux/git/v1), and they are the authority for the fields. The generated Rust types are in the crate `nomux-git`, module `wire::v1`.
+The argument and the result of each method are protobuf messages of the package `nomux.git.v1`, except for `worktree_facts`: the nomux daemon calls it, thus its messages are in the package `nomux.wire.v1` of the crate `nomux-proto`. The schemas are in [proto/nomux/git/v1](proto/nomux/git/v1), and they are the authority for the fields. The generated Rust types are in the crate `nomux-git`, module `wire::v1`.
 
 Each request has a `repository` field: the absolute path of the root of a worktree. A path of a file is relative to that root, with `/` between its parts.
 
@@ -58,6 +58,7 @@ Each request has a `repository` field: the absolute path of the root of a worktr
 | `worktrees` | `WorktreesRequest`, `WorktreesResponse` | The main worktree and the linked worktrees. |
 | `worktree_add` | `WorktreeAddRequest`, `WorktreeAddResponse` | Adds a linked worktree for a branch, or for a new branch. |
 | `worktree_remove` | `WorktreeRemoveRequest`, `WorktreeRemoveResponse` | Removes a linked worktree if the removal loses no work. |
+| `worktree_facts` | `WorktreeFactsRequest`, `WorktreeFactsResponse` of `nomux-proto` | The git facts of each worktree of a repository, for the worktree list of the nomux daemon. |
 | `watch` | `WatchRequest`, `WatchResponse` | Starts a subscription to the status of a worktree. |
 | `unwatch` | `UnwatchRequest`, `UnwatchResponse` | Ends a subscription. |
 
@@ -112,6 +113,26 @@ Each request has a `repository` field: the absolute path of the root of a worktr
 - The branch of the worktree stays.
 - A repository without a remote has no remote-tracking branch. Each commit is then "not pushed", and the method removes no worktree that has a commit.
 - The main worktree cannot be removed.
+
+### Worktree facts
+
+The nomux daemon calls `worktree_facts` for each Project of `nomux worktree ls`. The method only reads: it writes no object, no index, no lock and no reference, and it starts no `git` process. [`spec/worktree.md`](https://github.com/nomux-sh/proto/blob/main/spec/worktree.md) of the `proto` repository has the rules of each fact.
+
+| Fact | How the extension finds it |
+|---|---|
+| The worktrees | `HEAD`, `gitdir` and `locked` of each linked worktree in the common git directory. A worktree whose directory does not exist is `is_missing`. |
+| `is_dirty` | One status walk: a staged, unstaged or untracked change that is not ignored, a conflict, or an operation in progress. |
+| `ignored_paths` | The same status walk: each ignored path, a directory whose content is all ignored as one path that ends with `/`. 256 paths at most. |
+| `unpushed_commits` | The commits of `HEAD` that no remote-tracking branch has. Without a remote-tracking branch, the commits that the base branch does not have. The count stops at 1000. |
+| `has_detached_commits` | A detached `HEAD` with a commit that no local branch and no remote-tracking branch has. |
+| `upstream_gone` | The branch has an upstream branch in its configuration, and the remote-tracking branch does not exist. |
+| `merged_by` | The base branch has `HEAD` (`ANCESTOR`), else a merge of `HEAD` into the base branch in memory gives the tree of the base branch (`TREE`), else `upstream_gone` (`UPSTREAM_GONE`). |
+| `last_activity_at_ms` | The newest modification time of `HEAD`, `index` and `logs/HEAD` in the git directory of the worktree. |
+
+- The base branch is the branch that `origin/HEAD` names, else `main`, else `master`; the remote-tracking branch of `origin` before the local branch.
+- The merge in memory finds a rebase merge and a squash merge, but not a squash merge whose lines the base branch changed again later. Such a branch is merged only by `UPSTREAM_GONE`.
+- A linked worktree outside the approved directories has `error`, and only the facts that come from the common git directory.
+- The status walk and the merge can run a filter or a merge driver that the configuration of the repository names, as `git status` and `git merge-tree` do.
 
 ## Event
 
@@ -197,7 +218,8 @@ To report a vulnerability, obey the [security policy](https://github.com/nomux-s
 | Crate | Use |
 |---|---|
 | [`nomux-extension`](https://crates.io/crates/nomux-extension) 0.1 | The extension protocol. |
-| [`gix`](https://crates.io/crates/gix) 0.91 | The methods that read. Features: `sha1`, `status`, `blame` and `revision`, without the default features. The build has no network client and no pack cache. |
+| [`gix`](https://crates.io/crates/gix) 0.91 | The methods that read. Features: `sha1`, `status`, `blame`, `revision` and `merge` (the merge check of `worktree_facts`), without the default features. The build has no network client and no pack cache. |
+| [`nomux-proto`](https://crates.io/crates/nomux-proto) 0.14 | The messages of `worktree_facts`. |
 | [`gix-notify`](https://crates.io/crates/gix-notify) 0.1 | File events: inotify on Linux, FSEvents on macOS. |
 | [`prost`](https://crates.io/crates/prost) 0.14 | The messages. |
 

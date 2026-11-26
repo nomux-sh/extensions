@@ -11,13 +11,13 @@ repository = "https://github.com/nomux-sh/extensions"
 [workspace.dependencies]
 # Only the parts that the read methods use. The default features add the
 # network clients, the pack caches and the progress units.
-gix = { version = "0.91.0", default-features = false, features = ["sha1", "status", "blame", "revision"] }
+gix = { version = "0.91.0", default-features = false, features = ["sha1", "status", "blame", "revision", "merge"] }
 gix-notify = "0.1.0"
 # 0.1.2 needs a host with the extension API version 0.1.2, and nomux 0.4.0 has 0.1.1.
 nomux-extension = "0.1.1"
 # The payloads of the adapter methods and of the host services `agent.report`
 # and `agent.child`.
-nomux-proto = "0.11.0"
+nomux-proto = "0.14.0"
 # `prost`, `prost-build` and `prost-types` must have the same version: the
 # generated code of an extension is the output of this `prost-build`, and
 # `prost` is the version that `nomux-extension` uses.

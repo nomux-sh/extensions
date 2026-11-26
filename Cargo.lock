@@ -287,6 +287,7 @@ dependencies = [
  "gix-index",
  "gix-lock",
  "gix-macros",
+ "gix-merge",
  "gix-note",
  "gix-object",
  "gix-odb",
@@ -684,6 +685,33 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
+]
+
+[[package]]
+name = "gix-merge"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb443bfde4d739ef907a6c85c0e71bcb0542e5602b9376f549aadcad9c385e0d"
+dependencies = [
+ "bstr",
+ "gix-command",
+ "gix-diff",
+ "gix-error",
+ "gix-filter",
+ "gix-fs",
+ "gix-hash",
+ "gix-imara-diff",
+ "gix-index",
+ "gix-object",
+ "gix-path",
+ "gix-quote",
+ "gix-revision",
+ "gix-revwalk",
+ "gix-tempfile",
+ "gix-trace",
+ "gix-validate",
+ "gix-worktree",
+ "nonempty",
 ]
 
 [[package]]
@@ -1395,15 +1423,16 @@ dependencies = [
  "gix",
  "gix-notify",
  "nomux-extension",
+ "nomux-proto",
  "prost",
  "tempfile",
 ]
 
 [[package]]
 name = "nomux-proto"
-version = "0.11.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "621121ab066891c15f8ac70acbec2598f6ffffc1b6fe5fdbe99b677957ce201b"
+checksum = "193bd0c19423bd3217a964fd475c08d7e830812f5491257576e13f95d3826504"
 dependencies = [
  "prost",
 ]
