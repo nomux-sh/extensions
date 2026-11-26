@@ -41,7 +41,7 @@ Before the table decides, the `background_tasks` list of a `Stop` event reconcil
 | `Notification` | `permission_prompt` | needs you: permission | `a_permission_prompt_notification_needs_you_for_a_permission` |
 | `Notification` | `elicitation_dialog` | needs you: question | `an_elicitation_dialog_notification_needs_an_answer` |
 | `Notification` | `elicitation_url_dialog` | needs you: auth | `an_elicitation_url_dialog_notification_needs_a_login` |
-| `Notification` | `idle_prompt` | needs you: question | `an_idle_prompt_notification_needs_an_answer` |
+| `Notification` | `idle_prompt` | needs you: prompt | `an_idle_prompt_notification_waits_at_the_prompt` |
 | `Notification` | `agent_needs_input` | needs you: question | `an_agent_needs_input_notification_needs_an_answer` |
 | `Elicitation` | `mode` is `url` | needs you: auth, with the MCP server | `a_url_elicitation_needs_a_login` |
 | `Elicitation` | | needs you: question, with the MCP server | `a_form_elicitation_needs_an_answer` |
@@ -60,7 +60,7 @@ Why these rules:
 - **Soft and firm.** The hooks of Claude Code run in parallel, thus a tool event can arrive after the `Stop` of its turn or while a different call of the batch waits for a permission. A tool event gives a soft `working` state: the host does not let it replace `needs you` or work in the background. The submit of a prompt, the end of a tool batch and the answer to a permission request are firm.
 - **The end of a wait.** A soft state cannot end a wait for the user. The adapter remembers the tool call of a permission request (a number made from the tool name and its input, not the input), and a `PostToolUse` or `PostToolUseFailure` of the same call is firm. A denied request gives no tool event: the `PostToolBatch` of the batch or the `Stop` of the turn ends the wait.
 - **Late events.** After `Stop` or `StopFailure`, a tool event of the main agent has no report until the next `UserPromptSubmit`. After `SubagentStop`, an event of that subagent has no report until a new `SubagentStart`.
-- **`idle_prompt`.** Claude Code sends it about 60 seconds after the end of a turn if the user did not type. The `done` result becomes a wait for an answer: the user must type the next prompt.
+- **`idle_prompt`.** Claude Code sends it about 60 seconds after the end of a turn if the user did not type. The `done` result becomes a wait at the input prompt (`prompt`): the user must type the next prompt, and nothing that Claude Code asked for is pending. A dialog or an elicitation is `question`. The host can thus hibernate a session at its prompt and keeps a session that waits for an answer.
 - **`SessionEnd`.** The host has no `ended` state. The adapter does what the host does for a session that loses its process: work that ran or waited becomes `done`, and an error stays.
 - **Data that is not valid.** The adapter reports nothing for data that is not a JSON object, that has no text `session_id`, or whose `hook_event_name` is not the event of the hook command. A field with a different type than the documentation of Claude Code gives counts as absent. Each text of a report is one line of 512 bytes at most.
 

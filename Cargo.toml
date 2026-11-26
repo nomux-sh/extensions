@@ -17,7 +17,7 @@ gix-notify = "0.1.0"
 nomux-extension = "0.1.1"
 # The payloads of the adapter methods and of the host services `agent.report`
 # and `agent.child`.
-nomux-proto = "0.10.0"
+nomux-proto = "0.11.0"
 # `prost`, `prost-build` and `prost-types` must have the same version: the
 # generated code of an extension is the output of this `prost-build`, and
 # `prost` is the version that `nomux-extension` uses.
