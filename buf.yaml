@@ -1,0 +1,12 @@
+# buf configuration, format v2.
+# Each extension that has schemas is one module. The modules have no `name`:
+# this repository does not use the Buf Schema Registry.
+version: v2
+modules:
+  - path: git/proto
+lint:
+  use:
+    - STANDARD
+breaking:
+  use:
+    - FILE

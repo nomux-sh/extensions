@@ -1,0 +1,51 @@
+// Blame messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+import "nomux/git/v1/commit.proto";
+
+// The argument of the `blame` method.
+message BlameRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // The path of the file, relative to the worktree.
+  string path = 2;
+  // The revision whose version of the file the method examines. Empty for
+  // `HEAD`.
+  string revision = 3;
+  // The number of the first line of the page. 0 for the first line of the
+  // file.
+  uint32 start_line = 4;
+  // The largest number of lines in the page. 0 for the default.
+  uint32 max_lines = 5;
+}
+
+// The result of the `blame` method.
+message BlameResponse {
+  // The groups of lines of the page, in the sequence of their lines.
+  repeated BlameHunk hunks = 1;
+  // The commits that the hunks name, each one time.
+  repeated CommitInfo commits = 2;
+  // The number of lines of the file.
+  uint32 total_lines = 3;
+}
+
+// Consecutive lines that one commit added.
+message BlameHunk {
+  // The number of the first line in the examined version.
+  uint32 start_line = 1;
+  // The number of lines.
+  uint32 line_count = 2;
+  // The commit that added the lines.
+  string commit_id = 3;
+  // The number of the first line in the version of that commit.
+  uint32 original_start_line = 4;
+  // The path of the file in that commit when it is different. Empty in other
+  // cases.
+  string original_path = 5;
+}

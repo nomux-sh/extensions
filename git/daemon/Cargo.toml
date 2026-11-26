@@ -1,0 +1,29 @@
+[package]
+name = "nomux-git"
+version = "0.1.0"
+description = "The daemon part of the nomux git extension"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "nomux_git"
+
+[[bin]]
+name = "nomux-git"
+path = "src/main.rs"
+
+[dependencies]
+gix.workspace = true
+gix-notify.workspace = true
+nomux-extension.workspace = true
+prost.workspace = true
+
+[dev-dependencies]
+nomux-extension = { workspace = true, features = ["manifest"] }
+tempfile.workspace = true
+
+[lints]
+workspace = true

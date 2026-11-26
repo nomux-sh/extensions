@@ -1,0 +1,113 @@
+// Status messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+// The argument of the `status` method.
+message StatusRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+}
+
+// The result of the `status` method.
+message StatusResponse {
+  // The status of the worktree.
+  Status status = 1;
+}
+
+// The status of one worktree.
+message Status {
+  // The short name of the current branch. Empty when `HEAD` is detached.
+  string branch = 1;
+  // The commit of `HEAD` as a hexadecimal object ID. Empty when the branch
+  // has no commit.
+  string head = 2;
+  // The short name of the upstream branch, for example `origin/main`. Empty
+  // when the branch has no upstream.
+  string upstream = 3;
+  // The number of commits of the branch that the upstream does not have.
+  uint32 ahead = 4;
+  // The number of commits of the upstream that the branch does not have.
+  uint32 behind = 5;
+  // The operation that is in progress.
+  Operation operation = 6;
+  // The files that are not clean, in the sequence of their paths.
+  repeated FileStatus files = 7;
+}
+
+// An operation of git that stopped before its end.
+enum Operation {
+  // No operation is in progress.
+  OPERATION_UNSPECIFIED = 0;
+  // A merge.
+  OPERATION_MERGE = 1;
+  // A rebase.
+  OPERATION_REBASE = 2;
+  // A cherry-pick.
+  OPERATION_CHERRY_PICK = 3;
+  // A revert.
+  OPERATION_REVERT = 4;
+  // A bisect.
+  OPERATION_BISECT = 5;
+  // An `am` run.
+  OPERATION_APPLY_MAILBOX = 6;
+}
+
+// The status of one file.
+message FileStatus {
+  // The path of the file, relative to the worktree, with `/` between the
+  // parts. A directory that has only untracked files ends with `/`.
+  string path = 1;
+  // The path before the rename or the copy. Empty for other changes.
+  string original_path = 2;
+  // The change from `HEAD` to the index.
+  ChangeKind staged = 3;
+  // The change from the index to the worktree.
+  ChangeKind unstaged = 4;
+  // The conflict of the file.
+  ConflictKind conflict = 5;
+}
+
+// The kind of a change to one file.
+enum ChangeKind {
+  // The file has no change.
+  CHANGE_KIND_UNSPECIFIED = 0;
+  // The file is new.
+  CHANGE_KIND_ADDED = 1;
+  // The content or the executable bit changed.
+  CHANGE_KIND_MODIFIED = 2;
+  // The file is gone.
+  CHANGE_KIND_DELETED = 3;
+  // The file has a new path.
+  CHANGE_KIND_RENAMED = 4;
+  // The file is a copy of a different file.
+  CHANGE_KIND_COPIED = 5;
+  // The type changed, for example from a file to a symbolic link.
+  CHANGE_KIND_TYPE_CHANGED = 6;
+  // The file is not in the index and not ignored.
+  CHANGE_KIND_UNTRACKED = 7;
+}
+
+// The kind of a conflict of one file.
+enum ConflictKind {
+  // The file has no conflict.
+  CONFLICT_KIND_UNSPECIFIED = 0;
+  // The two sides deleted the file.
+  CONFLICT_KIND_BOTH_DELETED = 1;
+  // Our side added the file.
+  CONFLICT_KIND_ADDED_BY_US = 2;
+  // Their side deleted the file and our side changed it.
+  CONFLICT_KIND_DELETED_BY_THEM = 3;
+  // Their side added the file.
+  CONFLICT_KIND_ADDED_BY_THEM = 4;
+  // Our side deleted the file and their side changed it.
+  CONFLICT_KIND_DELETED_BY_US = 5;
+  // The two sides added the file with different content.
+  CONFLICT_KIND_BOTH_ADDED = 6;
+  // The two sides changed the file.
+  CONFLICT_KIND_BOTH_MODIFIED = 7;
+}

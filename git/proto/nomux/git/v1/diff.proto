@@ -1,0 +1,99 @@
+// Diff messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+import "nomux/git/v1/status.proto";
+
+// The argument of the `diff` method.
+message DiffRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // The two versions that the diff compares.
+  DiffKind kind = 2;
+  // The revision for `DIFF_KIND_REVISION`, for example `HEAD~2` or a branch
+  // name.
+  string revision = 3;
+  // The path of one file, relative to the worktree. When it is empty, the
+  // diff has all the changed files.
+  string path = 4;
+}
+
+// The two versions that a diff compares.
+enum DiffKind {
+  // Not set. The method refuses the request.
+  DIFF_KIND_UNSPECIFIED = 0;
+  // From the index to the worktree. Untracked files are new files.
+  DIFF_KIND_UNSTAGED = 1;
+  // From `HEAD` to the index.
+  DIFF_KIND_STAGED = 2;
+  // From a revision to the worktree.
+  DIFF_KIND_REVISION = 3;
+}
+
+// The result of the `diff` method.
+message DiffResponse {
+  // The changed files, in the sequence of their paths.
+  repeated FileDiff files = 1;
+}
+
+// The diff of one file.
+message FileDiff {
+  // The path of the file, relative to the worktree.
+  string path = 1;
+  // The path of the old version when it is different. Empty in other cases.
+  string original_path = 2;
+  // The kind of the change.
+  ChangeKind change = 3;
+  // True when one version is not text. The diff has no hunks then.
+  bool binary = 4;
+  // True when the file or the result is larger than a limit of the
+  // extension. The diff has no hunks then.
+  bool too_large = 5;
+  // The hunks, in the sequence of their lines.
+  repeated Hunk hunks = 6;
+}
+
+// A group of changed lines with the lines around them.
+message Hunk {
+  // The number of the first line of the hunk in the old version. The first
+  // line of a file has the number 1.
+  uint32 old_start = 1;
+  // The number of lines of the old version in the hunk.
+  uint32 old_lines = 2;
+  // The number of the first line of the hunk in the new version.
+  uint32 new_start = 3;
+  // The number of lines of the new version in the hunk.
+  uint32 new_lines = 4;
+  // The lines of the hunk.
+  repeated Line lines = 5;
+}
+
+// One line of a hunk.
+message Line {
+  // The kind of the line.
+  LineKind kind = 1;
+  // The number of the line in the old version. 0 for an added line.
+  uint32 old_number = 2;
+  // The number of the line in the new version. 0 for a removed line.
+  uint32 new_number = 3;
+  // The bytes of the line with its line end. The last line of a file can
+  // have no line end.
+  bytes content = 4;
+}
+
+// The kind of one line of a hunk.
+enum LineKind {
+  // Not set.
+  LINE_KIND_UNSPECIFIED = 0;
+  // The line is in the two versions.
+  LINE_KIND_CONTEXT = 1;
+  // The line is only in the new version.
+  LINE_KIND_ADDED = 2;
+  // The line is only in the old version.
+  LINE_KIND_REMOVED = 3;
+}

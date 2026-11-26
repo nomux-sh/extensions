@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["tools/protoc-gen-nomux-prost"]
+members = ["git/daemon", "tools/protoc-gen-nomux-prost"]
 
 [workspace.package]
 edition = "2024"

@@ -1,0 +1,41 @@
+// Watch messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+import "nomux/git/v1/status.proto";
+
+// The argument of the `watch` method.
+message WatchRequest {
+  // The absolute path of the worktree.
+  string repository = 1;
+}
+
+// The result of the `watch` method.
+message WatchResponse {
+  // The subscription. Give it to the `unwatch` method.
+  uint64 subscription = 1;
+  // The status of the worktree at the start of the subscription.
+  Status status = 2;
+}
+
+// The argument of the `unwatch` method.
+message UnwatchRequest {
+  // The subscription of a `watch` call.
+  uint64 subscription = 1;
+}
+
+// The result of the `unwatch` method.
+message UnwatchResponse {}
+
+// The payload of the `status_changed` event.
+message StatusChanged {
+  // The absolute path of the worktree.
+  string repository = 1;
+  // The new status of the worktree.
+  Status status = 2;
+}

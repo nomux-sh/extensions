@@ -1,0 +1,86 @@
+// Worktree messages of the nomux git extension.
+//
+// STATUS: DRAFT. The messages can change in a minor version of the extension
+// until version 1.0.0.
+
+syntax = "proto3";
+
+package nomux.git.v1;
+
+// The argument of the `worktrees` method.
+message WorktreesRequest {
+  // The absolute path of a worktree of the repository.
+  string repository = 1;
+}
+
+// The result of the `worktrees` method.
+message WorktreesResponse {
+  // The main worktree, then the linked worktrees.
+  repeated Worktree worktrees = 1;
+}
+
+// One worktree of a repository.
+message Worktree {
+  // The absolute path of the worktree.
+  string path = 1;
+  // The short name of its branch. Empty when its `HEAD` is detached.
+  string branch = 2;
+  // The commit of its `HEAD` as a hexadecimal object ID.
+  string head = 3;
+  // True for the main worktree.
+  bool is_main = 4;
+  // True when the worktree is locked.
+  bool is_locked = 5;
+}
+
+// The argument of the `worktree_add` method.
+message WorktreeAddRequest {
+  // The absolute path of a worktree of the repository.
+  string repository = 1;
+  // The absolute path of the new worktree. The directory must not exist.
+  string path = 2;
+  // The branch that the new worktree checks out. With `new_branch`, the
+  // revision where the new branch starts.
+  string branch = 3;
+  // The name of a branch to create for the new worktree. Empty to check out
+  // `branch`.
+  string new_branch = 4;
+}
+
+// The result of the `worktree_add` method.
+message WorktreeAddResponse {}
+
+// The argument of the `worktree_remove` method.
+message WorktreeRemoveRequest {
+  // The absolute path of a worktree of the repository.
+  string repository = 1;
+  // The absolute path of the linked worktree to remove.
+  string path = 2;
+}
+
+// The result of the `worktree_remove` method.
+message WorktreeRemoveResponse {
+  // True when the extension removed the worktree.
+  bool removed = 1;
+  // Why the extension did not remove the worktree. Only when `removed` is
+  // false.
+  RemovalRefusal refusal = 2;
+}
+
+// The reason why a worktree stays.
+message RemovalRefusal {
+  // The kind of work that a removal would lose.
+  RefusalReason reason = 1;
+  // The reason as English text for the user.
+  string message = 2;
+}
+
+// The kind of work that the removal of a worktree would lose.
+enum RefusalReason {
+  // Not set.
+  REFUSAL_REASON_UNSPECIFIED = 0;
+  // The worktree has changes that are not committed.
+  REFUSAL_REASON_UNCOMMITTED_CHANGES = 1;
+  // The worktree has commits that no remote-tracking branch has.
+  REFUSAL_REASON_UNPUSHED_COMMITS = 2;
+}
